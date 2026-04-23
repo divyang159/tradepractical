@@ -42,6 +42,7 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
           IconButton(
             icon: Icon(Icons.edit, color: AppColors.primary, size: 24.w),
             onPressed: () {
+              context.read<WatchlistBloc>().add(StartReorder());
               context.push(AppRoutes.reorder);
             },
           ),

@@ -7,8 +7,9 @@ import '../models/stock_model.dart';
 class WatchlistBloc extends Bloc<WatchlistEvent, WatchlistState> {
   WatchlistBloc() : super(WatchlistInitial()) {
     on<LoadWatchlist>(_onLoadWatchlist);
-    on<ReorderWatchlist>(_onReorderWatchlist);
-    on<SaveWatchlist>(_onSaveWatchlist);
+    on<StartReorder>(_onStartReorder);
+    on<UpdateTempOrder>(_onUpdateTempOrder);
+    on<CommitReorder>(_onCommitReorder);
   }
 
   Future<void> _onLoadWatchlist(
@@ -27,34 +28,51 @@ class WatchlistBloc extends Bloc<WatchlistEvent, WatchlistState> {
     }
   }
 
-  void _onReorderWatchlist(
-    ReorderWatchlist event,
+  void _onStartReorder(
+    StartReorder event,
     Emitter<WatchlistState> emit,
   ) {
     if (state is WatchlistLoaded) {
       final currentState = state as WatchlistLoaded;
-      final List<StockModel> currentStocks = List.from(currentState.stocks);
-
-      int oldIndex = event.oldIndex;
-      int newIndex = event.newIndex;
-
-      if (oldIndex < newIndex) {
-        // Adjust newIndex because the item will be removed from its old position before insertion
-        newIndex -= 1;
-      }
-
-      final StockModel item = currentStocks.removeAt(oldIndex);
-      currentStocks.insert(newIndex, item);
-
-      emit(WatchlistLoaded(currentStocks));
+      emit(currentState.copyWith(tempStocks: List.from(currentState.stocks)));
     }
   }
 
-  void _onSaveWatchlist(
-    SaveWatchlist event,
+  void _onUpdateTempOrder(
+    UpdateTempOrder event,
     Emitter<WatchlistState> emit,
   ) {
-    emit(WatchlistLoaded(event.stocks));
+    if (state is WatchlistLoaded) {
+      final currentState = state as WatchlistLoaded;
+      if (currentState.tempStocks != null) {
+        final currentTemp = List<StockModel>.from(currentState.tempStocks!);
+
+        int oldIndex = event.oldIndex;
+        int newIndex = event.newIndex;
+
+        if (oldIndex < newIndex) {
+          // Adjust newIndex because the item will be removed from its old position before insertion
+          newIndex -= 1;
+        }
+
+        final StockModel item = currentTemp.removeAt(oldIndex);
+        currentTemp.insert(newIndex, item);
+
+        emit(currentState.copyWith(tempStocks: currentTemp));
+      }
+    }
+  }
+
+  void _onCommitReorder(
+    CommitReorder event,
+    Emitter<WatchlistState> emit,
+  ) {
+    if (state is WatchlistLoaded) {
+      final currentState = state as WatchlistLoaded;
+      if (currentState.tempStocks != null) {
+        emit(WatchlistLoaded(currentState.tempStocks!));
+      }
+    }
   }
 
   List<StockModel> _generateMockStocks() {

@@ -6,18 +6,10 @@ import '../../../core/constants/app_strings.dart';
 import '../bloc/watchlist_bloc.dart';
 import '../bloc/watchlist_event.dart';
 import '../bloc/watchlist_state.dart';
-import '../models/stock_model.dart';
 import '../widgets/stock_tile.dart';
 
-class ReorderWatchlistScreen extends StatefulWidget {
+class ReorderWatchlistScreen extends StatelessWidget {
   const ReorderWatchlistScreen({super.key});
-
-  @override
-  State<ReorderWatchlistScreen> createState() => _ReorderWatchlistScreenState();
-}
-
-class _ReorderWatchlistScreenState extends State<ReorderWatchlistScreen> {
-  List<StockModel>? localStocks;
 
   @override
   Widget build(BuildContext context) {
@@ -35,40 +27,39 @@ class _ReorderWatchlistScreenState extends State<ReorderWatchlistScreen> {
           style: Theme.of(context).textTheme.titleLarge,
         ),
         actions: [
-          if (localStocks != null)
-            TextButton(
-              onPressed: () {
-                context.read<WatchlistBloc>().add(SaveWatchlist(localStocks!));
-                Navigator.of(context).pop();
-              },
-              child: Text(
-                'Save',
-                style: TextStyle(
-                  color: AppColors.primary,
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
+          BlocBuilder<WatchlistBloc, WatchlistState>(
+            builder: (context, state) {
+              if (state is WatchlistLoaded && state.tempStocks != null) {
+                return TextButton(
+                  onPressed: () {
+                    context.read<WatchlistBloc>().add(CommitReorder());
+                    Navigator.of(context).pop();
+                  },
+                  child: Text(
+                    'Save',
+                    style: TextStyle(
+                      color: AppColors.primary,
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                );
+              }
+              return const SizedBox.shrink();
+            },
+          ),
         ],
       ),
       body: BlocBuilder<WatchlistBloc, WatchlistState>(
         builder: (context, state) {
-          if (state is WatchlistLoaded) {
-            // Initialize localStocks if it hasn't been set yet
-            localStocks ??= List.from(state.stocks);
+          if (state is WatchlistLoaded && state.tempStocks != null) {
+            final list = state.tempStocks!;
 
             return ReorderableListView.builder(
               padding: EdgeInsets.only(top: 8.h, bottom: 24.h),
-              itemCount: localStocks!.length,
+              itemCount: list.length,
               onReorder: (oldIndex, newIndex) {
-                setState(() {
-                  if (oldIndex < newIndex) {
-                    newIndex -= 1;
-                  }
-                  final item = localStocks!.removeAt(oldIndex);
-                  localStocks!.insert(newIndex, item);
-                });
+                context.read<WatchlistBloc>().add(UpdateTempOrder(oldIndex, newIndex));
               },
               proxyDecorator: (child, index, animation) {
                 return Material(
@@ -79,7 +70,7 @@ class _ReorderWatchlistScreenState extends State<ReorderWatchlistScreen> {
                 );
               },
               itemBuilder: (context, index) {
-                final stock = localStocks![index];
+                final stock = list[index];
                 return Container(
                   key: ValueKey(stock.id),
                   child: StockTile(

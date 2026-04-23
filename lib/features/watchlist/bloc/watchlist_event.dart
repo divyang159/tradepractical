@@ -10,21 +10,16 @@ abstract class WatchlistEvent extends Equatable {
 
 class LoadWatchlist extends WatchlistEvent {}
 
-class ReorderWatchlist extends WatchlistEvent {
+class StartReorder extends WatchlistEvent {}
+
+class UpdateTempOrder extends WatchlistEvent {
   final int oldIndex;
   final int newIndex;
 
-  const ReorderWatchlist(this.oldIndex, this.newIndex);
+  const UpdateTempOrder(this.oldIndex, this.newIndex);
 
   @override
   List<Object?> get props => [oldIndex, newIndex];
 }
 
-class SaveWatchlist extends WatchlistEvent {
-  final List<StockModel> stocks;
-
-  const SaveWatchlist(this.stocks);
-
-  @override
-  List<Object?> get props => [stocks];
-}
+class CommitReorder extends WatchlistEvent {}

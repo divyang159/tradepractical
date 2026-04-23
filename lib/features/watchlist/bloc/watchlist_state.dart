@@ -14,11 +14,22 @@ class WatchlistLoading extends WatchlistState {}
 
 class WatchlistLoaded extends WatchlistState {
   final List<StockModel> stocks;
+  final List<StockModel>? tempStocks;
 
-  const WatchlistLoaded(this.stocks);
+  const WatchlistLoaded(this.stocks, {this.tempStocks});
 
   @override
-  List<Object?> get props => [stocks];
+  List<Object?> get props => [stocks, tempStocks];
+  
+  WatchlistLoaded copyWith({
+    List<StockModel>? stocks,
+    List<StockModel>? tempStocks,
+  }) {
+    return WatchlistLoaded(
+      stocks ?? this.stocks,
+      tempStocks: tempStocks ?? this.tempStocks,
+    );
+  }
 }
 
 class WatchlistError extends WatchlistState {
