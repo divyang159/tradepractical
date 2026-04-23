@@ -7,6 +7,7 @@ import 'core/routes/app_router.dart';
 import 'core/theme/app_text_styles.dart';
 import 'features/watchlist/bloc/watchlist_bloc.dart';
 
+
 void main() {
   runApp(const TradePracticalApp());
 }
