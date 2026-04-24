@@ -63,7 +63,3 @@ lib/
 1. Clone the repository.
 2. Run `flutter pub get` to install dependencies.
 3. Run the application using `flutter run`.
-
----
-
-Developed with ❤️ using Flutter.
